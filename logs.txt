@@ -1,0 +1,16 @@
+INFO - import data from transactions1.csv
+INFO - import data from transactions2.csv
+INFO - import data from transactions3.csv
+ERROR - cannot parse date from string - please check whether syntax is correct: Animates,4,13/5/2018
+java.text.ParseException: Unparseable date: "13/5/2018"
+	at java.base/java.text.DateFormat.parse(DateFormat.java:399)
+	at nz.ac.vuw.swen301.tuts.log4j.MergeTransactions.readData(MergeTransactions.java:69)
+	at nz.ac.vuw.swen301.tuts.log4j.MergeTransactions.main(MergeTransactions.java:32)
+INFO - import data from transactions1.csv
+INFO - import data from transactions2.csv
+INFO - import data from transactions3.csv
+ERROR - cannot parse date from string - please check whether syntax is correct: Animates,4,13/5/2018
+java.text.ParseException: Unparseable date: "13/5/2018"
+	at java.base/java.text.DateFormat.parse(DateFormat.java:399)
+	at nz.ac.vuw.swen301.tuts.log4j.MergeTransactions.readData(MergeTransactions.java:69)
+	at nz.ac.vuw.swen301.tuts.log4j.MergeTransactions.main(MergeTransactions.java:32)

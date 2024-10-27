@@ -2,10 +2,6 @@ package nz.ac.vuw.swen301.tuts.log4j;
 
 import java.util.Date;
 
-/**
- * A domain class representing a single transaction.
- * @param jens dietrich
- */
 public class Purchase {
 
 	

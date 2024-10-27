@@ -1,5 +1,7 @@
 package nz.ac.vuw.swen301.tuts.log4j;
 
+import org.apache.log4j.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,61 +15,53 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * The purpose of this class is to read and merge financial transactions, and print a summary:
- * - total amount 
- * - highest/lowest amount
- * - number of transactions 
- * @author jens dietrich
- */
 public class MergeTransactions {
-
 	private static DateFormat DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy");
 	private static NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.getDefault());
 
-	public static void main(String[] args) {
-		List<Purchase> transactions = new ArrayList<Purchase>();
-		
-		// read data from 4 files
-		readData("transactions1.csv",transactions);
-		readData("transactions2.csv",transactions);
-		readData("transactions3.csv",transactions);
-		readData("transactions4.csv",transactions);
-		
-		// print some info for the user
-		System.out.println("" + transactions.size() + " transactions imported");
-		System.out.println("total value: " + CURRENCY_FORMAT.format(computeTotalValue(transactions)));
-		System.out.println("max value: " + CURRENCY_FORMAT.format(computeMaxValue(transactions)));
+	private static final Logger fileLogger = Logger.getLogger("FILE");
+	private static final Logger transactionLogger = Logger.getLogger("TRANSACTIONS");
 
+	public static void main(String[] args) {
+		// 初始化日志配置
+		BasicConfigurator.configure();
+
+		List<Purchase> transactions = new ArrayList<Purchase>();
+		readData("transactions1.csv", transactions);
+		readData("transactions2.csv", transactions);
+		readData("transactions3.csv", transactions);
+		// readData("transactions4.csv", transactions);
+
+		transactionLogger.info(transactions.size() + " transactions imported");
+		transactionLogger.info("total value: " + CURRENCY_FORMAT.format(computeTotalValue(transactions)));
+		transactionLogger.info("max value: " + CURRENCY_FORMAT.format(computeMaxValue(transactions)));
 	}
-	
 	private static double computeTotalValue(List<Purchase> transactions) {
 		double v = 0.0;
-		for (Purchase p:transactions) {
+		for (Purchase p : transactions) {
 			v = v + p.getAmount();
 		}
 		return v;
 	}
-	
+
 	private static double computeMaxValue(List<Purchase> transactions) {
 		double v = 0.0;
-		for (Purchase p:transactions) {
-			v = Math.max(v,p.getAmount());
+		for (Purchase p : transactions) {
+			v = Math.max(v, p.getAmount());
 		}
 		return v;
 	}
 
-	// read transactions from a file, and add them to a list
+	// 从文件读取交易数据，并添加到列表中
 	private static void readData(String fileName, List<Purchase> transactions) {
-		
 		File file = new File(fileName);
 		String line = null;
-		// print info for user
-		System.out.println("import data from " + fileName);
+		// 打印信息给用户
+		fileLogger.info("import data from " + fileName);
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(file));
-			while ((line = reader.readLine())!=null) {
+			while ((line = reader.readLine()) != null) {
 				String[] values = line.split(",");
 				Purchase purchase = new Purchase(
 						values[0],
@@ -75,46 +69,45 @@ public class MergeTransactions {
 						DATE_FORMAT.parse(values[2])
 				);
 				transactions.add(purchase);
-				// this is for debugging only
-				System.out.println("imported transaction " + purchase);
-			} 
-		}
-		catch (FileNotFoundException x) {
-			// print warning
-			x.printStackTrace();
-			System.err.println("file " + fileName + " does not exist - skip");
-		}
-		catch (IOException x) {
-			// print error message and details
-			x.printStackTrace();
-			System.err.println("problem reading file " + fileName);
-		}
-		// happens if date parsing fails
-		catch (ParseException x) { 
-			// print error message and details
-			x.printStackTrace();
-			System.err.println("cannot parse date from string - please check whether syntax is correct: " + line);	
-		}
-		// happens if double parsing fails
-		catch (NumberFormatException x) {
-			// print error message and details
-			System.err.println("cannot parse double from string - please check whether syntax is correct: " + line);	
-		}
-		catch (Exception x) {
-			// any other exception 
-			// print error message and details
-			System.err.println("exception reading data from file " + fileName + ", line: " + line);	
-		}
-		finally {
+				// 仅用于调试
+				transactionLogger.debug("imported transaction " + purchase);
+			}
+		} catch (FileNotFoundException x) {
+			// 打印警告
+			fileLogger.warn("file " + fileName + " does not exist - skip", x);
+		} catch (IOException x) {
+			// 打印错误信息和详情
+			fileLogger.error("problem reading file " + fileName, x);
+		} catch (ParseException x) {
+			// 打印错误信息和详情
+			fileLogger.error("cannot parse date from string - please check whether syntax is correct: " + line, x);
+		} catch (NumberFormatException x) {
+			// 打印错误信息和详情
+			fileLogger.error("cannot parse double from string - please check whether syntax is correct: " + line, x);
+		} catch (Exception x) {
+			// 其他异常
+			fileLogger.error("exception reading data from file " + fileName + ", line: " + line, x);
+		} finally {
 			try {
-				if (reader!=null) {
+				if (reader != null) {
 					reader.close();
 				}
 			} catch (IOException e) {
-				// print error message and details
-				System.err.println("cannot close reader used to access " + fileName);
+				// 打印错误信息和详情
+				fileLogger.error("cannot close reader used to access " + fileName, e);
 			}
 		}
 	}
+	static {
+		// FILE 日志记录器配置
+        try {
+            fileLogger.addAppender(new FileAppender(new SimpleLayout(), "logs.txt"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        fileLogger.addAppender(new ConsoleAppender(new SimpleLayout()));
 
+		// TRANSACTIONS 日志记录器配置
+		transactionLogger.addAppender(new ConsoleAppender(new SimpleLayout()));
+	}
 }
